@@ -9,11 +9,17 @@ class RomanNumeral:
            }
     @singledispatchmethod
     def __init__(self, number):
-        self.num = number
+        if isinstance(number, str) and number.strip(''.join(self.post)) == '':
+            object.__setattr__(self, 'num', number)
+        else:
+            raise ValueError('переданный объект не являеться римским/арабским числом')
     
     @__init__.register(int|float)
     def new__init__(self, number):
-        self.num = self.patch(RomanNumeral('I'), number - 1, '+').num
+        if number:
+           object.__setattr__(self, 'num', self.patch(RomanNumeral('I'), number - 1, '+').num)
+        else:
+            raise ValueError('ноль не поддерживаеться в римской системе счисления')
 
     def __str__(self):
         return f'{self.num}'
@@ -51,6 +57,12 @@ class RomanNumeral:
         if isinstance(total, self.__class__):
             return self.patch(self, total, '/')
         return NotImplemented
+    
+    def __bool__(self):
+        return True
+    
+    def __setattr__(self, *_):
+        raise ValueError('Устанавливать данному экземпляру класса атрибуты - нельзя')
     
     @staticmethod
     def patch(instance, total, sign):
