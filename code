@@ -7,6 +7,10 @@ class RomanNumeral:
             'L': 50, 'C': 100, 'D': 500,
             'M': 1000
            }
+    
+    def __new__(self, *args, **kwargs):
+        return object.__new__(self)
+    
     @singledispatchmethod
     def __init__(self, number):
         if isinstance(number, str) and number.strip(''.join(self.post)) == '':
@@ -17,7 +21,7 @@ class RomanNumeral:
     @__init__.register(int|float)
     def new__init__(self, number):
         if number:
-           object.__setattr__(self, 'num', self.patch(RomanNumeral('I'), number - 1, '+').num)
+            object.__setattr__(self, 'num', self.patch(RomanNumeral('I'), number - 1, '+').num)
         else:
             raise ValueError('ноль не поддерживаеться в римской системе счисления')
 
