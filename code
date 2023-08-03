@@ -1,0 +1,69 @@
+from functools import total_ordering, singledispatchmethod
+
+@total_ordering
+class RomanNumeral:
+    post = {
+            '': 0, 'I': 1, 'V': 5, 'X': 10, 
+            'L': 50, 'C': 100, 'D': 500,
+            'M': 1000
+           }
+    @singledispatchmethod
+    def __init__(self, number):
+        self.num = number
+    
+    @__init__.register(int|float)
+    def new__init__(self, number):
+        self.num = self.patch(RomanNumeral('I'), number - 1, '+').num
+
+    def __str__(self):
+        return f'{self.num}'
+
+    def __int__(self):
+        wow, count = tuple(self.post[i] for i in self.num), 0
+        for i, j in enumerate(wow[:-1], 1):
+            count += (j if j >= wow[i] else -j)
+        return count + wow[-1]
+
+    def __eq__(self, total):
+        if isinstance(total, self.__class__):
+            return int(self) == int(total)
+        return NotImplemented
+
+    def __gt__(self, total):
+        if isinstance(total, self.__class__):
+            return int(self) > int(total)
+        return NotImplemented
+
+    def __add__(self, total):
+        return self.patch(self, total, '+')
+
+    def __sub__(self, total):
+        if isinstance(total, self.__class__):
+            return self.patch(self, total, '-')
+        return NotImplemented
+    
+    def __mul__(self, total):
+        if isinstance(total, self.__class__):
+            return self.patch(self, total, '*')
+        return NotImplemented
+    
+    def __truediv__(self, total):
+        if isinstance(total, self.__class__):
+            return self.patch(self, total, '/')
+        return NotImplemented
+    
+    @staticmethod
+    def patch(instance, total, sign):
+        digit, dicts = eval(f'{int(instance)} {sign} {int(total)}'), [*reversed(instance.post.items())]
+        count = ''
+        for j in range(len(dicts) - 1):
+            element_a, element_b = dicts[j], dicts[j + 1][1]
+            while digit // element_a[1] >= 1:
+                digit -= element_a[1]
+                count = f'{count}{element_a[0]}'
+            if digit < element_a[1] and digit > element_b:
+                for one, two in reversed(dicts[j + 1:]):
+                    if digit // (element_a[1] - two) >= 1 and str(two)[0] != '5':
+                        digit -= (element_a[1] - two)
+                        count = f'{count}{one}{element_a[0]}'
+        return instance.__class__(count)
