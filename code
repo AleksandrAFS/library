@@ -13,19 +13,19 @@ def decor(func: object) -> object:
 def rsign(sign: object) -> object:
     @decor
     def update(self, total: object) -> int:
-        return eval(f'{total} {sign} {int(self)}')
+        return RomanNumeral(eval(f'{total} {sign} {int(self)}'))
     return update
 
 @total_ordering
 class RomanNumeral:
     """
        working with roman numerals.
-       attribute post - dict roman numerals
+       attribute Roman - dict roman numerals
        attribute num - roman numeral now
-       staticmethod parch - algorithm
+       staticmethod translator - algorithm
     """
 
-    post = {
+    Roman = {
             '': 0, 'I': 1, 'V': 5, 'X': 10, 
             'L': 50, 'C': 100, 'D': 500,
             'M': 1000
@@ -33,7 +33,7 @@ class RomanNumeral:
     
     @singledispatchmethod
     def __init__(self, number: str) -> None:
-        if isinstance(number, str) and number.strip(''.join(self.post)) == '':
+        if isinstance(number, str) and number.strip(''.join(self.Roman)) == '':
             object.__setattr__(self, 'num', number)
         else:
             raise ValueError('переданный объект не являеться римским/арабским числом')
@@ -41,7 +41,7 @@ class RomanNumeral:
     @__init__.register
     def new__init__(self, number: int|float) -> None:
         if number:
-            object.__setattr__(self, 'num', self.patch(RomanNumeral('I'), number - 1, '+').num)
+            object.__setattr__(self, 'num', self.translator(RomanNumeral('I'), number - 1, '+').num)
         else:
             raise ValueError('ноль не поддерживаеться в римской системе счисления')
 
@@ -49,7 +49,7 @@ class RomanNumeral:
         return f'{self.num}'
 
     def __int__(self) -> int:
-        wow, count = tuple(self.post[i] for i in self.num), 0
+        wow, count = tuple(self.Roman[i] for i in self.num), 0
         for i, j in enumerate(wow[:-1], 1):
             count += (j if j >= wow[i] else -j)
         return count + wow[-1]
@@ -68,27 +68,27 @@ class RomanNumeral:
 
     @decor
     def __add__(self, total: object) -> object:
-        return self.patch(self, total, '+')
+        return self.translator(self, total, '+')
 
     @decor
     def __sub__(self, total: object) -> object:
-        return self.patch(self, total, '-')
+        return self.translator(self, total, '-')
     
     @decor
     def __mul__(self, total: object) -> object:
-        return self.patch(self, total, '*')
+        return self.translator(self, total, '*')
     
     @decor
     def __truediv__(self, total: object) -> object:
-        return self.patch(self, total, '/')
+        return self.translator(self, total, '/')
     
     @decor
     def __floordiv__(self, total: object) -> object:
-        return self.patch(self, total, '//')
+        return self.translator(self, total, '//')
     
     @decor 
     def __mod__(self, total: object) -> object:
-        return self.patch(self, total, '%')
+        return self.translator(self, total, '%')
     
     def __bool__(self) -> bool:
         return True
@@ -107,9 +107,11 @@ class RomanNumeral:
     __rmod__ = rsign('%')
     
     @staticmethod
-    def patch(instance: object, total: object, sign: str) -> object:
-        digit, dicts = eval(f'{int(instance)} {sign} {int(total)}'), [*reversed(instance.post.items())]
+    def translator(instance: object, total: object, sign: str) -> object:
+        """arabic to roman numeral conversion algorithm"""
+        digit, dicts = eval(f'{int(instance)} {sign} {int(total)}'), [*reversed(instance.Roman.items())]
         count = ''
+        
         for j in range(len(dicts) - 1):
             element_a, element_b = dicts[j], dicts[j + 1][1]
             while digit // element_a[1] >= 1:
