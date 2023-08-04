@@ -115,7 +115,7 @@ class RomanNumeral:
         return translator(self.Roman, total % int(self))
     
     @check_roman
-    def __floordiv__(self, total):
+    def __rfloordiv__(self, total):
         return translator(self.Roman, total // int(self))
     
     def __setattr__(self, *_) -> ValueError:
