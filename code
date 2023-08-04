@@ -9,6 +9,12 @@ def decor(func: object) -> object:
         return NotImplemented
     return new_func
 
+def rsign(sign: object) -> object:
+    @decor
+    def update(self, total: object) -> int:
+        return eval(f'{total} {sign} {int(self)}')
+    return update
+
 @total_ordering
 class RomanNumeral:
     """
@@ -23,9 +29,6 @@ class RomanNumeral:
             'L': 50, 'C': 100, 'D': 500,
             'M': 1000
            }
-    
-    def __new__(self, *args: Any, **kwargs: Any) -> object:
-        return object.__new__(self)
     
     @singledispatchmethod
     def __init__(self, number: str) -> None:
@@ -78,6 +81,14 @@ class RomanNumeral:
     def __truediv__(self, total: object) -> object:
         return self.patch(self, total, '/')
     
+    @decor
+    def __floordiv__(self, total: object) -> object:
+        return self.patch(self, total, '//')
+    
+    @decor 
+    def __mod__(self, total: object) -> object:
+        return self.patch(self, total, '%')
+    
     def __bool__(self) -> bool:
         return True
     
@@ -87,10 +98,12 @@ class RomanNumeral:
     def __delattr__(self, *_) -> ValueError:
         raise ValueError('Удалять атрибуты экземпляра класса - нельзя')
     
-    __radd__ = __add__
-    __rsub__ = __sub__
-    __rmul__ = __mul__
-    __rtruediv__ = __truediv__
+    __radd__ = rsign('+')
+    __rsub__ = rsign('-')
+    __rmul__ = rsign('*')
+    __rtruediv__ = rsign('/')
+    __rfloordiv__ = rsign('//')
+    __rmod__ = rsign('%')
     
     @staticmethod
     def patch(instance: object, total: object, sign: str) -> object:
