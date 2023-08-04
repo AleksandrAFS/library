@@ -11,6 +11,11 @@ def decor(func: object) -> object:
 
 @total_ordering
 class RomanNumeral:
+    """
+       working with roman numerals.
+       attribute post - dict roman numerals
+       attribute num - roman numeral now
+    """
     post = {
             '': 0, 'I': 1, 'V': 5, 'X': 10, 
             'L': 50, 'C': 100, 'D': 500,
