@@ -1,20 +1,32 @@
 from functools import total_ordering, singledispatchmethod, wraps
 from typing import Any
 
-def decor(func: object) -> object:
-    """Декоратор для облегчения написания методов класса - RomanNumeral"""
+def check_roman(func: object) -> object:
+    """Decorator to simplify writing class methods - RomanNumeral"""
     @wraps(func)
     def new_func(self, total: object, *args: Any, **kwargs: Any) -> Any:
-        if isinstance(total, self.__class__|int|float):
+        if isinstance(total, (self.__class__, int, float)):
             return func(self, total, *args, **kwargs)
         return NotImplemented
     return new_func
 
-def rsign(sign: object) -> object:
-    @decor
-    def update(self, total: object) -> int:
-        return RomanNumeral(eval(f'{total} {sign} {int(self)}'))
-    return update
+def translator(initial_dictionary: dict, digit: object) -> object:
+    """arabic to roman numeral conversion algorithm"""
+        
+    dicts, count = [*reversed(initial_dictionary.items())], ''
+        
+    for j in range(len(dicts) - 1):
+        element_a, element_b = dicts[j], dicts[j + 1][1]
+        while digit // element_a[1] >= 1:
+            digit -= element_a[1]
+            count = f'{count}{element_a[0]}'
+        
+        if digit < element_a[1] and digit > element_b:
+            for one, two in reversed(dicts[j + 1:]):
+                if digit // (element_a[1] - two) >= 1 and str(two)[0] != '5':
+                    digit -= (element_a[1] - two)
+                    count = f'{count}{one}{element_a[0]}'
+    return RomanNumeral(count)
 
 @total_ordering
 class RomanNumeral:
@@ -33,65 +45,78 @@ class RomanNumeral:
     
     @singledispatchmethod
     def __init__(self, number: str) -> None:
-        if isinstance(number, str) and number.strip(''.join(self.Roman)) == '':
-            object.__setattr__(self, 'num', number)
-        else:
+        if not (isinstance(number, str) and number.strip(''.join(self.Roman)) == ''):
             raise ValueError('переданный объект не являеться римским/арабским числом')
+        object.__setattr__(self, 'num', number)
     
     @__init__.register
     def new__init__(self, number: int|float) -> None:
-        if number:
-            object.__setattr__(self, 'num', self.translator(RomanNumeral('I'), number - 1, '+').num)
-        else:
-            raise ValueError('ноль не поддерживаеться в римской системе счисления')
+        if not number:
+             raise ValueError('ноль не поддерживаеться в римской системе счисления')
+        object.__setattr__(self, 'num', translator(self.Roman, number).num)
+           
 
     def __str__(self) -> str:
         return f'{self.num}'
 
     def __int__(self) -> int:
+        """Converting Roman numbers to Arabic"""
+        
         wow, count = tuple(self.Roman[i] for i in self.num), 0
         for i, j in enumerate(wow[:-1], 1):
             count += (j if j >= wow[i] else -j)
         return count + wow[-1]
     
-    @decor
+    @check_roman
     def __eq__(self, total: object) -> bool:
         return int(self) == int(total)
-
     
     def __hash__(self) -> int:
         return hash(int(self))
     
-    @decor
+    @check_roman
     def __gt__(self, total: object) -> bool:
         return int(self) > int(total)
 
-    @decor
+    @check_roman
     def __add__(self, total: object) -> object:
-        return self.translator(self, total, '+')
+        return translator(self.Roman, int(self) + int(total))
 
-    @decor
+    @check_roman
     def __sub__(self, total: object) -> object:
-        return self.translator(self, total, '-')
+        return translator(self.Roman, int(self) - int(total))
     
-    @decor
+    @check_roman
     def __mul__(self, total: object) -> object:
-        return self.translator(self, total, '*')
+        return translator(self.Roman, int(self) * int(total))
     
-    @decor
+    @check_roman
     def __truediv__(self, total: object) -> object:
-        return self.translator(self, total, '/')
+        return translator(self.Roman, int(self) / int(total))
     
-    @decor
+    @check_roman
     def __floordiv__(self, total: object) -> object:
-        return self.translator(self, total, '//')
+        return translator(self.Roman, int(self) // int(total))
     
-    @decor 
+    @check_roman
     def __mod__(self, total: object) -> object:
-        return self.translator(self, total, '%')
+        return translator(self.Roman, int(self) % int(total))
     
-    def __bool__(self) -> bool:
-        return True
+    @check_roman
+    def __rsub__(self, total):
+        return translator(self.Roman, total - int(self))
+    
+    @check_roman
+    def __rtruediv__(self, total):
+        return translator(self.Roman, total / int(self))
+    
+    @check_roman
+    def __rmod__(self, total):
+        return translator(self.Roman, total % int(self))
+    
+    @check_roman
+    def __floordiv__(self, total):
+        return translator(self.Roman, total // int(self))
     
     def __setattr__(self, *_) -> ValueError:
         raise ValueError('Устанавливать/Изменять атрибуты, данному экземпляру класса - нельзя')
@@ -99,27 +124,5 @@ class RomanNumeral:
     def __delattr__(self, *_) -> ValueError:
         raise ValueError('Удалять атрибуты экземпляра класса - нельзя')
     
-    __radd__ = rsign('+')
-    __rsub__ = rsign('-')
-    __rmul__ = rsign('*')
-    __rtruediv__ = rsign('/')
-    __rfloordiv__ = rsign('//')
-    __rmod__ = rsign('%')
-    
-    @staticmethod
-    def translator(instance: object, total: object, sign: str) -> object:
-        """arabic to roman numeral conversion algorithm"""
-        digit, dicts = eval(f'{int(instance)} {sign} {int(total)}'), [*reversed(instance.Roman.items())]
-        count = ''
-        
-        for j in range(len(dicts) - 1):
-            element_a, element_b = dicts[j], dicts[j + 1][1]
-            while digit // element_a[1] >= 1:
-                digit -= element_a[1]
-                count = f'{count}{element_a[0]}'
-            if digit < element_a[1] and digit > element_b:
-                for one, two in reversed(dicts[j + 1:]):
-                    if digit // (element_a[1] - two) >= 1 and str(two)[0] != '5':
-                        digit -= (element_a[1] - two)
-                        count = f'{count}{one}{element_a[0]}'
-        return instance.__class__(count)
+    __rmul__ = __mul__
+    __radd__ = __add__
