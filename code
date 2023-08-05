@@ -1,32 +1,4 @@
-from functools import total_ordering, singledispatchmethod, wraps
-from typing import Any
-
-def check_roman(func: object) -> object:
-    """Decorator to simplify writing class methods - RomanNumeral"""
-    @wraps(func)
-    def new_func(self, total: object, *args: Any, **kwargs: Any) -> Any:
-        if isinstance(total, (self.__class__, int, float)):
-            return func(self, total, *args, **kwargs)
-        return NotImplemented
-    return new_func
-
-def translator(initial_dictionary: dict, digit: object) -> object:
-    """arabic to roman numeral conversion algorithm"""
-        
-    dicts, count = [*reversed(initial_dictionary.items())], ''
-        
-    for j in range(len(dicts) - 1):
-        element_a, element_b = dicts[j], dicts[j + 1][1]
-        while digit // element_a[1] >= 1:
-            digit -= element_a[1]
-            count = f'{count}{element_a[0]}'
-        
-        if digit < element_a[1] and digit > element_b:
-            for one, two in reversed(dicts[j + 1:]):
-                if digit // (element_a[1] - two) >= 1 and str(two)[0] != '5':
-                    digit -= (element_a[1] - two)
-                    count = f'{count}{one}{element_a[0]}'
-    return RomanNumeral(count)
+from functools import total_ordering, singledispatchmethod
 
 @total_ordering
 class RomanNumeral:
@@ -55,7 +27,6 @@ class RomanNumeral:
              raise ValueError('ноль не поддерживаеться в римской системе счисления')
         object.__setattr__(self, 'num', translator(self.Roman, number).num)
            
-
     def __str__(self) -> str:
         return f'{self.num}'
 
@@ -67,62 +38,36 @@ class RomanNumeral:
             count += (j if j >= wow[i] else -j)
         return count + wow[-1]
     
-    @check_roman
-    def __eq__(self, total: object) -> bool:
-        return int(self) == int(total)
-    
     def __hash__(self) -> int:
         return hash(int(self))
-    
-    @check_roman
-    def __gt__(self, total: object) -> bool:
-        return int(self) > int(total)
 
-    @check_roman
-    def __add__(self, total: object) -> object:
-        return translator(self.Roman, int(self) + int(total))
-
-    @check_roman
-    def __sub__(self, total: object) -> object:
-        return translator(self.Roman, int(self) - int(total))
-    
-    @check_roman
-    def __mul__(self, total: object) -> object:
-        return translator(self.Roman, int(self) * int(total))
-    
-    @check_roman
-    def __truediv__(self, total: object) -> object:
-        return translator(self.Roman, int(self) / int(total))
-    
-    @check_roman
-    def __floordiv__(self, total: object) -> object:
-        return translator(self.Roman, int(self) // int(total))
-    
-    @check_roman
-    def __mod__(self, total: object) -> object:
-        return translator(self.Roman, int(self) % int(total))
-    
-    @check_roman
-    def __rsub__(self, total):
-        return translator(self.Roman, total - int(self))
-    
-    @check_roman
-    def __rtruediv__(self, total):
-        return translator(self.Roman, total / int(self))
-    
-    @check_roman
-    def __rmod__(self, total):
-        return translator(self.Roman, total % int(self))
-    
-    @check_roman
-    def __rfloordiv__(self, total):
-        return translator(self.Roman, total // int(self))
-    
     def __setattr__(self, *_) -> ValueError:
         raise ValueError('Устанавливать/Изменять атрибуты, данному экземпляру класса - нельзя')
     
     def __delattr__(self, *_) -> ValueError:
         raise ValueError('Удалять атрибуты экземпляра класса - нельзя')
     
+    def __gt__(self, total: object) -> bool:
+        if isinstance(total, (self.__class__, int, float)): 
+            return int(self) > int(total)
+        return NotImplemented
+    
+    def __eq__(self, total: object) -> bool:
+        if isinstance(total, (self.__class__, int, float)): 
+            return int(self) == int(total)
+        return NotImplemented
+
+    
+    __add__ = operation('__add__')
+    __sub__ = operation('__sub__')
+    __mul__ = operation('__mul__')
+    __truediv__ = operation('__truediv__')
+    __mod__ = operation('__mod__')
+    __floordiv__ = __truediv__
+    
     __rmul__ = __mul__
     __radd__ = __add__
+    __rsub__ = operation('__sub__', True)
+    __rtruediv__ = operation('__truediv__', True)
+    __rfloordiv__ = __rtruediv__
+    __rmod__ = operation('__mod__', True)
