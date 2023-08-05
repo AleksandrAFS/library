@@ -1,4 +1,5 @@
 from functools import total_ordering, singledispatchmethod
+from typing import Iterable
 
 @total_ordering
 class RomanNumeral:
@@ -56,6 +57,9 @@ class RomanNumeral:
         if isinstance(total, (self.__class__, int, float)): 
             return int(self) == int(total)
         return NotImplemented
+    
+    def __iter__(self) -> Iterable:
+        return iter(self.num)
 
     
     __add__ = operation('__add__')
