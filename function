@@ -2,7 +2,7 @@ def operation(func: object, flag: bool = False) -> object:
     """Decorator to simplify writing class methods - RomanNumeral"""
     
     def new_func(self:object, total: object) -> object:
-        if isinstance(total, (self.__class__, int, float)):
+        if isinstance(total, (self.__class__, float, int)):
             if flag: 
                 return RomanNumeral(getattr(int(total), func)(int(self)))
             return RomanNumeral(getattr(int(self), func)(int(total)))
@@ -12,9 +12,10 @@ def operation(func: object, flag: bool = False) -> object:
 
 
 
-def translator(initial_dictionary: dict, digit: object) -> object:
+def translator(initial_dictionary: dict, digits: int) -> object:
     """arabic to roman numeral conversion algorithm"""
-        
+    
+    digit = abs(digits)
     dicts, count = [*reversed(initial_dictionary.items())], ''
         
     for j in range(len(dicts) - 1):
@@ -28,4 +29,5 @@ def translator(initial_dictionary: dict, digit: object) -> object:
                 if digit // (element_a[1] - two) >= 1 and str(two)[0] != '5':
                     digit -= (element_a[1] - two)
                     count = f'{count}{one}{element_a[0]}'
-    return RomanNumeral(count)
+                    
+    return RomanNumeral(f'{["", "-"][digits < 0]}{count}')
