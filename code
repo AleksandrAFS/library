@@ -1,5 +1,7 @@
 from functools import total_ordering, singledispatchmethod
-from typing import Iterable
+from typing import Iterable, Any
+from re import search
+
 
 @total_ordering
 class RomanNumeral:
@@ -18,7 +20,7 @@ class RomanNumeral:
     
     @singledispatchmethod
     def __init__(self, number: str) -> None:
-        if not (isinstance(number, str) and number.strip(''.join(self.Roman)) == ''):
+        if not (isinstance(number, str) and self.is_roman(number)):
             raise ValueError('переданный объект не являеться римским/арабским числом')
         object.__setattr__(self, 'num', number)
     
@@ -27,17 +29,23 @@ class RomanNumeral:
         if not number:
              raise ValueError('ноль не поддерживаеться в римской системе счисления')
         object.__setattr__(self, 'num', translator(self.Roman, number).num)
-           
+    
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({repr(self.num)})'
+    
     def __str__(self) -> str:
         return f'{self.num}'
 
     def __int__(self) -> int:
         """Converting Roman numbers to Arabic"""
         
-        wow, count = tuple(self.Roman[i] for i in self.num), 0
+        new_num = self.is_roman(self.num)
+        wow = tuple(self.Roman[i] for i in new_num.group(2))
+        count, measurement = 0, [1, -1][bool(new_num.group(1))]
+        
         for i, j in enumerate(wow[:-1], 1):
             count += (j if j >= wow[i] else -j)
-        return count + wow[-1]
+        return measurement * (count + wow[-1])
     
     def __hash__(self) -> int:
         return hash(int(self))
@@ -49,18 +57,20 @@ class RomanNumeral:
         raise ValueError('Удалять атрибуты экземпляра класса - нельзя')
     
     def __gt__(self, total: object) -> bool:
-        if isinstance(total, (self.__class__, int, float)): 
+        if isinstance(total, (self.__class__, float, int)): 
             return int(self) > int(total)
         return NotImplemented
     
     def __eq__(self, total: object) -> bool:
-        if isinstance(total, (self.__class__, int, float)): 
+        if isinstance(total, (self.__class__, float, int)): 
             return int(self) == int(total)
         return NotImplemented
     
     def __iter__(self) -> Iterable:
         return iter(self.num)
 
+    def is_roman(self, total: Any) -> object:
+        return search(rf"^(-?)([{''.join(self.Roman)}]+)$", str(total))
     
     __add__ = operation('__add__')
     __sub__ = operation('__sub__')
