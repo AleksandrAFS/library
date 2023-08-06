@@ -66,9 +66,15 @@ class RomanNumeral:
             return int(self) == int(total)
         return NotImplemented
     
-    def __iter__(self) -> Iterable:
-        return iter(self.num)
-
+    def __getitem__(self, index: int) -> str:
+        return self.num[index]
+    
+    def __abs__(self) -> object:
+        return self.__class__(abs(int(self)))
+    
+    def __len__(self) -> int:
+        return len(self.num)
+    
     def is_roman(self, total: Any) -> object:
         return search(rf"^(-?)([{''.join(self.Roman)}]+)$", str(total))
     
