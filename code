@@ -1,5 +1,5 @@
 from functools import total_ordering, singledispatchmethod
-from typing import Iterable, Any
+from typing import Any
 from re import search
 
 
@@ -12,6 +12,8 @@ class RomanNumeral:
        staticmethod translator - algorithm
     """
 
+    __slots__ = ('num',)
+    
     Roman = {
             '': 0, 'I': 1, 'V': 5, 'X': 10, 
             'L': 50, 'C': 100, 'D': 500,
@@ -22,13 +24,13 @@ class RomanNumeral:
     def __init__(self, number: str) -> None:
         if not (isinstance(number, str) and self.is_roman(number)):
             raise ValueError('переданный объект не являеться римским/арабским числом')
-        object.__setattr__(self, 'num', number)
+        self.num = number
     
     @__init__.register
     def new__init__(self, number: int|float) -> None:
         if not number:
              raise ValueError('ноль не поддерживаеться в римской системе счисления')
-        object.__setattr__(self, 'num', translator(self.Roman, number).num)
+        self.num = translator(self.Roman, number).num
     
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({repr(self.num)})'
@@ -49,12 +51,6 @@ class RomanNumeral:
     
     def __hash__(self) -> int:
         return hash(int(self))
-
-    def __setattr__(self, *_) -> ValueError:
-        raise ValueError('Устанавливать/Изменять атрибуты, данному экземпляру класса - нельзя')
-    
-    def __delattr__(self, *_) -> ValueError:
-        raise ValueError('Удалять атрибуты экземпляра класса - нельзя')
     
     def __gt__(self, total: object) -> bool:
         if isinstance(total, (self.__class__, float, int)): 
